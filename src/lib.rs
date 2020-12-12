@@ -12,7 +12,7 @@ pub struct AppoLabConnection {
 pub type WelcomeMessage = Box<[String]>;
 
 impl AppoLabConnection {
-    fn open() -> io::Result<(Self, WelcomeMessage)> {
+    pub fn open() -> io::Result<(Self, WelcomeMessage)> {
         let mut stream = TcpStream::connect((HOST, PORT))?;
 
         let welcome_message = {
@@ -31,7 +31,7 @@ impl AppoLabConnection {
         Ok((Self { tcp: stream }, welcome_message))
     }
 
-    fn send_receive(&mut self, message: &str) -> io::Result<String> {
+    pub fn send_receive(&mut self, message: &str) -> io::Result<String> {
         self.tcp.write_u32::<BigEndian>(message.len() as u32)?;
         self.tcp.write_all(message.as_bytes())?;
 
@@ -47,7 +47,7 @@ impl AppoLabConnection {
         Ok(resp)
     }
 
-    fn close(self) {
+    pub fn close(self) {
         /* self drops */
     }
 }
