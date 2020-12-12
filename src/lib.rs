@@ -1,4 +1,4 @@
-use byteorder::{BigEndian, ByteOrder, ReadBytesExt, WriteBytesExt};
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use std::io::{self, BufRead, BufReader, Read, Write};
 use std::net::TcpStream;
 
@@ -45,6 +45,19 @@ impl AppoLabConnection {
         };
 
         Ok(resp)
+    }
+
+    /// Starts an interactive session. Useful for debugging purposes.
+    pub fn delegate_to_interactive(&mut self) -> ! {
+        let mut line = String::new();
+        loop {
+            print!("> ");
+            std::io::stdout().flush();
+            std::io::stdin().read_line(&mut line).unwrap();
+            let response = self.send_receive(&line).unwrap();
+            println!("< {}", response);
+            line.clear();
+        }
     }
 
     pub fn close(self) {
