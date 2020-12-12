@@ -1,0 +1,8 @@
+[package]
+name = "appolab"
+version = "0.1.0"
+authors = ["Edgar Onghena <dev@edgar.bzh>"]
+edition = "2018"
+
+[dependencies]
+byteorder = "1.3"
