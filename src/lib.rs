@@ -7,6 +7,7 @@ const PORT: u16 = 9999;
 
 pub struct AppoLabConnection {
     tcp: TcpStream,
+    debug: bool,
 }
 
 pub type WelcomeMessage = Box<[String]>;
@@ -28,10 +29,26 @@ impl AppoLabConnection {
         stream.write_u32::<BigEndian>(0xFFFFFFCC)?;
         let _ignored = stream.read_u32::<BigEndian>()?;
 
-        Ok((Self { tcp: stream }, welcome_message))
+        Ok((
+            Self {
+                tcp: stream,
+                debug: false,
+            },
+            welcome_message,
+        ))
     }
 
-    pub fn send_receive(&mut self, message: &str) -> io::Result<String> {
+    pub fn set_debug_mode(&mut self, enabled: bool) {
+        self.debug = enabled;
+    }
+
+    pub fn send_receive(&mut self, message: impl AsRef<str>) -> io::Result<String> {
+        let message = message.as_ref();
+
+        if self.debug {
+            eprintln!("> {}", message);
+        }
+
         self.tcp.write_u32::<BigEndian>(message.len() as u32)?;
         self.tcp.write_all(message.as_bytes())?;
 
@@ -44,11 +61,17 @@ impl AppoLabConnection {
             String::from_utf8(buffer).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?
         };
 
+        if self.debug {
+            eprintln!("< {}", &resp);
+        }
+
         Ok(resp)
     }
 
     /// Starts an interactive session. Useful for debugging purposes.
     pub fn delegate_to_interactive(&mut self) -> ! {
+        self.debug = false;
+
         let mut line = String::new();
         loop {
             print!("> ");
